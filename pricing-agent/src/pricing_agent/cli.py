@@ -3,8 +3,8 @@ import argparse
 import csv
 import sys
 from pathlib import Path
-from dotenv import load_dotenv
 
+from .config import DEFAULT_COMPETITORS, DEFAULT_PRODUCTS, load_environment
 from .csv_store import DataValidationError, load_competitors, load_products
 from .service import PricingService
 
@@ -32,10 +32,10 @@ def run_pricing(
     return 0
 
 def main(argv: list[str] | None = None) -> int:
-    load_dotenv(Path.cwd() / ".env")
+    load_environment()
     parser = argparse.ArgumentParser(description="Inspect inputs or run AI dynamic pricing.")
-    parser.add_argument("--products", type=Path, default=Path("data/products.csv"))
-    parser.add_argument("--competitors", type=Path, default=Path("data/competitors.csv"))
+    parser.add_argument("--products", type=Path, default=DEFAULT_PRODUCTS)
+    parser.add_argument("--competitors", type=Path, default=DEFAULT_COMPETITORS)
     parser.add_argument(
         "--run",
         action="store_true",

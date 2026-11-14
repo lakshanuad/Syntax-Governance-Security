@@ -1,5 +1,4 @@
 """Local-only web UI. Run with: python -m pricing_agent.web."""
-from dotenv import load_dotenv
 import argparse
 from copy import deepcopy
 import json
@@ -10,6 +9,8 @@ import re
 from threading import Lock, Thread
 from urllib.parse import urlsplit
 
+from .config import DEFAULT_COMPETITORS, DEFAULT_PRODUCTS, load_environment
+from .csv_store import load_competitors, load_products
 from .service import PricingService
 
 ASSETS = Path(__file__).parent / "static"
@@ -45,7 +46,7 @@ class WebApp:
             if self.running:
                 return "The agent is already running. You can follow its progress here."
             if not os.environ.get("GEMINI_API_KEY"):
-                return "Set GEMINI_API_KEY in the terminal, then restart the web app to run pricing. Stock and latest-run views work without a key."
+                return "Add GEMINI_API_KEY to pricing-agent/.env, then restart the web app to run pricing. Stock and latest-run views work without a key."
             self.running = True
             self.progress = "Preparing product and competitor data"
             self.error = None
@@ -63,6 +64,11 @@ class WebApp:
 
             if isinstance(error, errors.APIError):
                 message = f"Gemini request failed (HTTP {error.code}). Check your API access or quota in Google AI Studio."
+            elif isinstance(error, FileNotFoundError):
+                if error.filename:
+                    message = f"Missing file: {error.filename}. Check the selected CSV files and restart the server."
+                else:
+                    message = "A required runtime file is missing. Reinstall dependencies with python -m pip install -e . and restart the server."
             elif isinstance(error, (ValueError, OSError)):
                 message = str(error)
             else:
@@ -173,15 +179,16 @@ def make_server(app: WebApp, port: int = 8000) -> ThreadingHTTPServer:
 
 
 def main(argv: list[str] | None = None) -> int:
-    load_dotenv(Path.cwd() / ".env")
+    load_environment()
     parser = argparse.ArgumentParser(description="Open the local dynamic pricing workspace.")
     parser.add_argument("--port", type=int, default=8000)
-    parser.add_argument("--products", type=Path, default=Path("data/products.csv"))
-    parser.add_argument("--competitors", type=Path, default=Path("data/competitors.csv"))
+    parser.add_argument("--products", type=Path, default=DEFAULT_PRODUCTS)
+    parser.add_argument("--competitors", type=Path, default=DEFAULT_COMPETITORS)
     args = parser.parse_args(argv)
     app = WebApp(PricingService(args.products, args.competitors))
     try:
-        app.service.inventory()
+        products = load_products(app.service.products_path)
+        load_competitors(app.service.competitors_path, products)
         server = make_server(app, args.port)
     except (ValueError, OSError) as error:
         parser.exit(1, f"Cannot start UI: {error}\n")

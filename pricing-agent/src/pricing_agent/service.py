@@ -15,8 +15,8 @@ Proposer = Callable[[Product, list[CompetitorPrice]], PriceRecommendation]
 
 class PricingService:
     def __init__(self, products_path: Path, competitors_path: Path, proposer: Proposer | None = None):
-        self.products_path = products_path
-        self.competitors_path = competitors_path
+        self.products_path = products_path.resolve()
+        self.competitors_path = competitors_path.resolve()
         self.proposer = proposer
 
     def inventory(self) -> list[dict]:

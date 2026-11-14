@@ -1,4 +1,5 @@
 import json
+from contextlib import chdir
 import os
 from decimal import Decimal
 from pathlib import Path
@@ -44,6 +45,19 @@ class WebTests(unittest.TestCase):
         self.assertTrue(result["decisions"][0]["reason"])
         self.assertEqual(self.service.inventory()[0]["current_price"], "21.00")
         self.assertEqual(progress[-1], "Saving validated prices")
+
+    def test_relative_input_paths_remain_valid_after_working_directory_changes(self):
+        with chdir(self.directory.name):
+            service = PricingService(Path("products.csv"), Path("competitors.csv"), self.propose)
+        result = service.run()
+        self.assertEqual(result["changed"], 1)
+        self.assertTrue(service.products_path.is_absolute())
+
+    def test_missing_runtime_file_has_actionable_error(self):
+        self.service.run = lambda progress: (_ for _ in ()).throw(FileNotFoundError(2, "No such file or directory"))
+        self.app._run()
+        self.assertIn("Reinstall dependencies", self.app.error)
+        self.assertFalse(self.app.running)
 
     def test_failure_on_later_product_does_not_apply_earlier_recommendation(self):
         before = self.products.read_bytes()

@@ -22,7 +22,7 @@ GEMINI_API_KEY=your-key-here
 ```
 
 Get a key from [Google AI Studio](https://aistudio.google.com/apikey).
-The app loads `.env` automatically when run from this folder. Keep the key
+The app loads `.env` automatically from the agent folder. Keep the key
 private; `.env` is ignored by Git. Restart the server after changing the key.
 An existing terminal environment variable takes priority over `.env`.
 
@@ -53,6 +53,11 @@ LLM calls. Chat uses simple command matching; Gemini makes pricing decisions.
 
 Latest-run details reset when the server restarts. Saved prices remain in CSV.
 Only runs started through this web server appear in its latest-run view.
+
+Default CSV and `.env` paths resolve from the project folder, independently of
+where the terminal was opened. After moving the project or rebuilding `.venv`,
+stop older servers and restart using the current environment. If packages or
+runtime files are missing, run `python -m pip install -e .` from `pricing-agent/`.
 
 ## CLI
 
