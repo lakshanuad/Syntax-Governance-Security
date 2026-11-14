@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dynamic-pricing-agent"
+version = "0.1.0"
+description = "A standalone CSV-based dynamic pricing agent prototype"
+requires-python = ">=3.11"
+dependencies = [
+    "google-genai",
+    "httpx",
+]
+[project.scripts]
+pricing-agent = "pricing_agent.cli:main"
+pricing-agent-ui = "pricing_agent.web:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+pricing_agent = ["static/*.html", "static/*.css", "static/*.js"]
+

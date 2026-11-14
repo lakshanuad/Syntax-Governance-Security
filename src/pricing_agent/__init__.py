@@ -1,0 +1,1 @@
+"""Standalone dynamic pricing prototype."""
