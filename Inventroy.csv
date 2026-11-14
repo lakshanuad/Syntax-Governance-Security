@@ -1,0 +1,4 @@
+product_id,product_name,available,damaged,unit_price
+P001,Wireless Headphones,11,0,89.00
+P002,USB-C Charger,4,1,25.00
+P003,Running Shoes,0,0,120.00
